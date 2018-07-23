@@ -4,11 +4,12 @@ package metfile
 
 import (
 	"encoding/binary"
+	"github.com/wenerme/goform"
 	"net"
 )
 
 var Endian = binary.LittleEndian
-var Extensions = []string{"met"}
+var Extensions = []string{".met"}
 
 type MetForm struct {
 	Servers []*MetServer `json:"servers"`
@@ -72,4 +73,26 @@ type MetServerTag struct {
 	ValueType   TagValueType `json:"type"`
 	StringValue string       `json:"string_value,omitempty"`
 	Uint32Value uint32       `json:"uint32_value,omitempty"`
+}
+
+func init() {
+	goform.RegisterForm(goform.FormRegistration{
+		Extensions: Extensions,
+		Read: func(input goform.FormInput) (form goform.Form, err error) {
+			return NewMetReader(input.Reader).ReadForm()
+		},
+		CanWrite: func(form goform.Form, output goform.FormOutput) bool {
+			if _, ok := form.(*MetForm); ok && output.Extension == Extensions[0] {
+				return true
+			}
+			return false
+		},
+		Write: func(form goform.Form, output goform.FormOutput) (err error) {
+			f := form.(*MetForm)
+			return NewMetWriter(f, output.Writer).WriteForm()
+		},
+		NewForm: func() goform.Form {
+			return &MetForm{}
+		},
+	})
 }

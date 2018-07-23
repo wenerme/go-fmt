@@ -1,2 +1,2 @@
-# go-fmt
-Various file format handler for go
+# goform
+Various file form handler for go
